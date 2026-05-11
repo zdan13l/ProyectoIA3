@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motor de Inferencia — Sistema Experto de Diagnóstico</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #21262d;
+    --border:    #30363d;
+    --border2:   #484f58;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --faint:     #3d444d;
+    --teal:      #2dd4bf;
+    --teal-dim:  #1a4a44;
+    --teal-glow: rgba(45,212,191,.15);
+    --green:     #56d364;
+    --green-dim: #1a3a1f;
+    --red:       #f85149;
+    --red-dim:   #3a1a1a;
+    --amber:     #f0883e;
+    --blue:      #58a6ff;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Sora', sans-serif;
+    --radius:    8px;
+    --radius-lg: 12px;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
+
+/* ── UPLOAD SCREEN ── */
+#upload-screen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 100; transition: opacity .4s, transform .4s;
+}
+#upload-screen.hidden { opacity: 0; pointer-events: none; transform: scale(.98); }
+
+.logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.logo-icon { width: 40px; height: 40px; border: 1.5px solid var(--teal); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 22px; height: 22px; stroke: var(--teal); fill: none; stroke-width: 2; stroke-linecap: round; }
+.logo-text { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
+.logo-text span { color: var(--teal); }
+
+.upload-subtitle { color: var(--muted); font-size: 13px; margin-bottom: 36px; }
+
+.drop-zone {
+    width: 380px; border: 1.5px dashed var(--border2); border-radius: var(--radius-lg);
+    padding: 40px 32px; text-align: center; cursor: pointer; transition: all .2s;
+    background: var(--surface);
+}
+.drop-zone:hover, .drop-zone.drag { border-color: var(--teal); background: var(--teal-glow); }
+.drop-icon { font-size: 32px; margin-bottom: 12px; }
+.drop-main { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.drop-sub { font-size: 12px; color: var(--muted); }
+.drop-sub em { color: var(--teal); font-style: normal; font-weight: 500; }
+#file-input { display: none; }
+
+.upload-hint { margin-top: 20px; font-size: 11px; color: var(--faint); max-width: 380px; text-align: center; line-height: 1.6; }
+
+/* ── MAIN APP ── */
+#app { display: none; flex-direction: column; min-height: 100vh; }
+#app.visible { display: flex; animation: fadeIn .5s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
+
+/* ── TOP BAR ── */
+.topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; border-bottom: 1px solid var(--border);
+    background: var(--surface); position: sticky; top: 0; z-index: 10;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.tb-logo { width: 30px; height: 30px; border: 1px solid var(--teal); border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; }
+.tb-logo svg { width: 16px; height: 16px; stroke: var(--teal); fill: none; stroke-width: 2; stroke-linecap: round; }
+.tb-title { font-size: 15px; font-weight: 600; letter-spacing: -.2px; }
+.tb-title span { color: var(--teal); }
+.kb-badge {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 99px;
+    padding: 3px 12px; font-size: 11px; font-family: var(--mono); color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+}
+.kb-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+.reload-btn {
+    font-size: 11px; background: none; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 4px 10px; color: var(--muted); cursor: pointer; font-family: var(--sans); transition: all .15s;
+}
+.reload-btn:hover { border-color: var(--border2); color: var(--text); }
+
+/* ── MAIN LAYOUT ── */
+.main-grid { display: grid; grid-template-columns: 340px 1fr; flex: 1; min-height: 0; }
+
+/* ── LEFT PANEL ── */
+.left-panel { border-right: 1px solid var(--border); overflow-y: auto; padding: 20px; }
+.panel-heading { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+
+.selected-area {
+    min-height: 44px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 8px; display: flex; flex-wrap: wrap;
+    gap: 5px; align-items: center; margin-bottom: 18px;
+}
+.empty-msg { font-size: 12px; color: var(--faint); }
+.sel-chip {
+    font-size: 11px; padding: 2px 8px; background: var(--teal-dim); border: 1px solid var(--teal);
+    border-radius: 99px; color: var(--teal); display: flex; align-items: center; gap: 4px; font-family: var(--mono);
+}
+.sel-chip button { background: none; border: none; color: var(--teal); cursor: pointer; font-size: 13px; line-height: 1; }
+
+.sym-group { margin-bottom: 16px; }
+.sym-group-title {
+    font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px solid var(--border);
+}
+.sym-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.sym-chip {
+    font-size: 11px; padding: 4px 10px; border-radius: 99px;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--muted);
+    cursor: pointer; transition: all .15s; user-select: none; font-family: var(--mono);
+}
+.sym-chip:hover { border-color: var(--border2); color: var(--text); }
+.sym-chip.on { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+
+.clear-row { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+.clear-link { background: none; border: none; font-size: 11px; color: var(--faint); cursor: pointer; font-family: var(--sans); text-decoration: underline; text-underline-offset: 2px; }
+.clear-link:hover { color: var(--muted); }
+
+/* ── RIGHT PANEL ── */
+.right-panel { display: flex; flex-direction: column; overflow-y: auto; }
+
+.query-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.q-label { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.q-row { display: flex; gap: 10px; align-items: center; }
+
+select {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: var(--mono);
+    font-size: 12px; padding: 9px 12px; appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+    transition: border-color .15s;
+}
+select:focus { outline: none; border-color: var(--teal); }
+
+.run-btn {
+    padding: 9px 22px; background: var(--teal); color: #0a1a18;
+    border: none; border-radius: var(--radius); font-family: var(--sans);
+    font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: all .15s; letter-spacing: .02em;
+}
+.run-btn:hover { background: #22c6ae; transform: translateY(-1px); }
+.run-btn:active { transform: translateY(0); }
+.run-btn:disabled { background: var(--surface2); color: var(--faint); cursor: not-allowed; transform: none; }
+
+/* ── RESULT ── */
+.result-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.result-card {
+    border-radius: var(--radius-lg); padding: 16px 20px;
+    animation: slideIn .3s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:translateY(0) } }
+.result-card.success { background: var(--green-dim); border: 1px solid #1f5c27; }
+.result-card.failure { background: var(--red-dim); border: 1px solid #5c1f1f; }
+.result-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.result-formula { font-family: var(--mono); font-size: 15px; font-weight: 500; }
+.result-card.success .result-formula { color: var(--green); }
+.result-card.failure .result-formula { color: var(--red); }
+.result-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 99px;
+}
+.result-card.success .result-badge { background: #1f5c27; color: var(--green); }
+.result-card.failure .result-badge { background: #5c1f1f; color: var(--red); }
+.result-sub { font-size: 12px; color: var(--muted); }
+
+.stats-row { display: flex; gap: 10px; margin-top: 14px; }
+.stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; flex: 1; text-align: center; }
+.stat-num { font-size: 20px; font-weight: 600; font-family: var(--mono); color: var(--text); }
+.stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+/* ── TRACE ── */
+.trace-section { flex: 1; padding: 20px 24px; }
+.trace-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.trace-title-text { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.trace-line { flex: 1; height: 1px; background: var(--border); }
+
+.trace-empty { font-size: 12px; color: var(--faint); font-style: italic; }
+.trace-steps { display: flex; flex-direction: column; gap: 8px; }
+.trace-step { display: flex; gap: 10px; align-items: flex-start; animation: stepIn .25s ease both; }
+.trace-step:nth-child(1) { animation-delay: .05s }
+.trace-step:nth-child(2) { animation-delay: .10s }
+.trace-step:nth-child(3) { animation-delay: .15s }
+.trace-step:nth-child(4) { animation-delay: .20s }
+.trace-step:nth-child(5) { animation-delay: .25s }
+.trace-step:nth-child(n+6) { animation-delay: .30s }
+@keyframes stepIn { from { opacity:0; transform:translateX(-8px) } to { opacity:1; transform:translateX(0) } }
+
+.step-id {
+    font-family: var(--mono); font-size: 10px; color: var(--amber);
+    background: rgba(240,136,62,.1); border: 1px solid rgba(240,136,62,.3);
+    border-radius: 4px; padding: 2px 7px; white-space: nowrap; margin-top: 1px;
+}
+.step-body { font-family: var(--mono); font-size: 12px; line-height: 1.6; }
+.step-ant { color: var(--muted); }
+.step-arrow { color: var(--faint); margin: 0 4px; }
+.step-cons { color: var(--text); }
+.step-cons.is-target { color: var(--green); font-weight: 500;
+    background: rgba(86,211,100,.1); padding: 0 5px; border-radius: 4px; }
+
+/* ── WORKING MEMORY ── */
+.wm-section { padding: 0 24px 20px; }
+.wm-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.wm-chip { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 99px; }
+.wm-chip.initial { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+.wm-chip.inferred { background: rgba(88,166,255,.1); border: 1px solid rgba(88,166,255,.4); color: var(--blue); }
+
+/* ── PLACEHOLDER ── */
+.placeholder {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--faint); gap: 10px; padding: 40px;
+}
+.ph-icon { opacity: .3; }
+.ph-icon svg { width: 48px; height: 48px; stroke: var(--muted); fill: none; stroke-width: 1.5; }
+.ph-text { font-size: 13px; text-align: center; line-height: 1.6; max-width: 260px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+</style>
+</head>
+<body>
+
+<div id="upload-screen">
+    <div class="logo-row">
+        <div class="logo-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+        </div>
+        <div class="logo-text">Motor de <span>Inferencia</span></div>
+    </div>
+    <p class="upload-subtitle">Sistema Experto de Diagnóstico — Encadenamiento hacia Adelante</p>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="drop-icon">⬡</div>
+        <div class="drop-main">Cargar base de conocimiento</div>
+        <div class="drop-sub" style="margin-top:6px">
+            Arrastra tu archivo <em>base_conocimiento.json</em> aquí<br>o haz clic para seleccionarlo
+        </div>
+        <input type="file" id="file-input" accept=".json">
+    </div>
+    <p class="upload-hint">
+        El archivo JSON debe tener la estructura <code style="color:var(--teal)">"reglas"</code> con campos
+        <code style="color:var(--teal)">"id"</code>, <code style="color:var(--teal)">"antecedentes"</code> y
+        <code style="color:var(--teal)">"consecuente"</code>.
+    </p>
+</div>
+
+<div id="app">
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="tb-logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <div class="tb-title">Motor de <span>Inferencia</span></div>
+            <div class="kb-badge">
+                <div class="kb-dot"></div>
+                <span id="kb-info">— reglas</span>
+            </div>
+        </div>
+        <button class="reload-btn" onclick="resetToUpload()">↑ Cargar otro JSON</button>
+    </div>
+
+    <div class="main-grid">
+        <div class="left-panel">
+            <div class="panel-heading">Síntomas del paciente</div>
+            <div class="selected-area" id="selected-area">
+                <span class="empty-msg" id="empty-msg">Ningún síntoma seleccionado…</span>
+            </div>
+            <div class="clear-row">
+                <button class="clear-link" onclick="clearAll()">limpiar selección</button>
+            </div>
+            <div id="symptom-groups"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="query-section">
+                <div class="q-label">Hipótesis a verificar</div>
+                <div class="q-row">
+                    <select id="target-sel">
+                        <option value="">— seleccionar diagnóstico objetivo —</option>
+                    </select>
+                    <button class="run-btn" id="run-btn" onclick="runInference()" disabled>Ejecutar KB ⊨ α</button>
+                </div>
+            </div>
+
+            <div id="result-container"></div>
+            <div id="trace-container"></div>
+            <div id="wm-container"></div>
+
+            <div class="placeholder" id="placeholder">
+                <div class="ph-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                        <path d="M11 8v6M8 11h6"/>
+                    </svg>
+                </div>
+                <div class="ph-text">Selecciona los síntomas del paciente y un diagnóstico objetivo para ejecutar la inferencia.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let KB = [];
+    let selectedSymptoms = new Set();
+
+    const SYMPTOM_ORDER = [
+        ["Generales",      ["Fiebre","Fatiga","Escalofrios","Sudoracion_Nocturna","Perdida_Apetito","Perdida_Peso","Palidez"]],
+        ["Respiratorios",  ["Tos","Dificultad_Respiratoria","Congestion_Nasal","Esputo_Purulento","Sibilancias","Tos_Con_Sangre"]],
+        ["Digestivos",     ["Nauseas","Vomito","Diarrea","Dolor_Abdominal","Ictericia","Orina_Oscura"]],
+        ["Dolor",          ["Dolor_Cabeza","Dolor_Muscular","Dolor_Pecho","Dolor_Garganta","Dolor_Articular"]],
+        ["Neurológicos",   ["Confusion","Convulsiones","Mareos","Rigidez_Nuca"]],
+        ["Cutáneos",       ["Erupcion_Cutanea","Prurito","Vesiculas","Sangrado_Espontaneo","Inflamacion_Articular","Inflamacion_Amigdalas"]],
+        ["Cardiovascular", ["Palpitaciones"]],
+        ["Sensoriales",    ["Perdida_Olfato","Perdida_Gusto","Ojo_Rojo","Secrecion_Ocular"]]
+    ];
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('drag');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag');
+        const file = e.dataTransfer.files[0];
+        if (file) loadFile(file);
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) loadFile(fileInput.files[0]);
+    });
+
+    function loadFile(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!data.reglas) throw new Error('El JSON no contiene el campo "reglas".');
+                KB = data.reglas;
+                initApp();
+            } catch (err) {
+                alert('Error al leer el JSON:\n' + err.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    fetch('./base_conocimiento.json')
+        .then(r => r.json())
+        .then(data => {
+            if (data.reglas) {
+                KB = data.reglas;
+                initApp();
+            }
+        })
+        .catch(() => {});
+
+    function initApp() {
+        document.getElementById('upload-screen').classList.add('hidden');
+        setTimeout(() => {
+            document.getElementById('upload-screen').style.display = 'none';
+        }, 450);
+        document.getElementById('app').classList.add('visible');
+
+        const allAnt = new Set(KB.flatMap(r => r.antecedentes));
+        const allCons = new Set(KB.map(r => r.consecuente));
+        const pureSymptoms = new Set([...allAnt].filter(s => !allCons.has(s)));
+
+        document.getElementById('kb-info').textContent = `${KB.length} reglas · ${pureSymptoms.size} síntomas`;
+
+        buildSymptomGroups(pureSymptoms);
+        buildDiagnosisSelect(allCons);
+    }
+
+    function buildSymptomGroups(pureSymptoms) {
+        const container = document.getElementById('symptom-groups');
+        container.innerHTML = '';
+        const known = new Set();
+        SYMPTOM_ORDER.forEach(([grpName, syms]) => {
+            const filtered = syms.filter(s => pureSymptoms.has(s));
+            if (filtered.length === 0) return;
+            filtered.forEach(s => known.add(s));
+            appendGroup(container, grpName, filtered);
+        });
+        // Extra: symptoms in KB but not in predefined groups
+        const extra = [...pureSymptoms].filter(s => !known.has(s)).sort();
+        if (extra.length > 0) appendGroup(container, 'Otros', extra);
+    }
+
+    function appendGroup(container, name, syms) {
+        const div = document.createElement('div');
+        div.className = 'sym-group';
+        div.innerHTML = `<div class="sym-group-title">${name}</div><div class="sym-chips"></div>`;
+        const chips = div.querySelector('.sym-chips');
+        syms.forEach(s => {
+            const c = document.createElement('span');
+            c.className = 'sym-chip';
+            c.textContent = s.replace(/_/g, ' ');
+            c.dataset.s = s;
+            c.onclick = () => toggle(s);
+            chips.appendChild(c);
+        });
+        container.appendChild(div);
+    }
+
+    function buildDiagnosisSelect(allCons) {
+        const sel = document.getElementById('target-sel');
+        sel.innerHTML = '<option value="">— seleccionar diagnóstico objetivo —</option>';
+        [...allCons].sort().forEach(d => {
+            const o = document.createElement('option');
+            o.value = d;
+            o.textContent = d.replace(/_/g, ' ');
+            sel.appendChild(o);
+        });
+        sel.onchange = updateBtn;
+    }
+
+    function toggle(s) {
+        if (selectedSymptoms.has(s)) selectedSymptoms.delete(s);
+        else selectedSymptoms.add(s);
+        document.querySelectorAll(`.sym-chip[data-s="${s}"]`).forEach(c => c.classList.toggle('on', selectedSymptoms.has(s)));
+        renderSelected();
+        updateBtn();
+    }
+
+    function renderSelected() {
+        const area = document.getElementById('selected-area');
+        const emptyMsg = document.getElementById('empty-msg');
+        area.querySelectorAll('.sel-chip').forEach(c => c.remove());
+        emptyMsg.style.display = selectedSymptoms.size === 0 ? '' : 'none';
+        selectedSymptoms.forEach(s => {
+            const ch = document.createElement('span');
+            ch.className = 'sel-chip';
+            ch.innerHTML = `${s.replace(/_/g,' ')}<button onclick="toggle('${s}')">×</button>`;
+            area.appendChild(ch);
+        });
+    }
+
+    function clearAll() {
+        selectedSymptoms.clear();
+        document.querySelectorAll('.sym-chip').forEach(c => c.classList.remove('on'));
+        renderSelected();
+        updateBtn();
+        document.getElementById('result-container').innerHTML = '';
+        document.getElementById('trace-container').innerHTML = '';
+        document.getElementById('wm-container').innerHTML = '';
+        document.getElementById('placeholder').style.display = '';
+    }
+
+    function updateBtn() {
+        const target = document.getElementById('target-sel').value;
+        document.getElementById('run-btn').disabled = selectedSymptoms.size === 0 || !target;
+    }
+
+    function forwardChain(facts, goal) {
+        const wm = new Set(facts);
+        const trace = [];
+        let changed = true, iter = 0;
+        while (changed) {
+            changed = false;
+            iter++;
+            for (const rule of KB) {
+                if (rule.antecedentes.every(a => wm.has(a)) && !wm.has(rule.consecuente)) {
+                    wm.add(rule.consecuente);
+                    changed = true;
+                    trace.push({ iter, id: rule.id, ant: [...rule.antecedentes], cons: rule.consecuente });
+                    if (rule.consecuente === goal) return { result: true, trace, wm: [...wm] };
+                }
+            }
+        }
+        return { result: false, trace, wm: [...wm] };
+    }
+
+    function runInference() {
+        const target = document.getElementById('target-sel').value;
+        if (!target || selectedSymptoms.size === 0) return;
+
+        const { result, trace, wm } = forwardChain([...selectedSymptoms], target);
+        const initSet = new Set([...selectedSymptoms]);
+        const label = target.replace(/_/g, ' ');
+
+        document.getElementById('placeholder').style.display = 'none';
+
+        const rc = document.getElementById('result-container');
+        rc.innerHTML = `
+            <div class="result-section">
+                <div class="result-card ${result ? 'success' : 'failure'}">
+                    <div class="result-top">
+                        <div class="result-formula">KB ${result ? '⊨' : '⊭'} ${label}</div>
+                        <div class="result-badge">${result ? 'Consecuencia lógica' : 'No demostrable'}</div>
+                    </div>
+                    <div class="result-sub">
+                        ${result
+                            ? `El objetivo <strong>${label}</strong> se infiere en ${trace.length} paso(s) de razonamiento.`
+                            : `Punto fijo alcanzado. El objetivo no es consecuencia lógica de los síntomas dados.`}
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-box"><div class="stat-num">${selectedSymptoms.size}</div><div class="stat-lbl">síntomas</div></div>
+                        <div class="stat-box"><div class="stat-num">${trace.length}</div><div class="stat-lbl">reglas activadas</div></div>
+                        <div class="stat-box"><div class="stat-num">${wm.length}</div><div class="stat-lbl">hechos totales</div></div>
+                        <div class="stat-box"><div class="stat-num">${KB.length}</div><div class="stat-lbl">reglas en KB</div></div>
+                    </div>
+                </div>
+            </div>`;
+
+        const tc = document.getElementById('trace-container');
+        let traceHTML = `<div class="trace-section"><div class="trace-header"><span class="trace-title-text">Traza de razonamiento</span><div class="trace-line"></div></div>`;
+        if (trace.length === 0) {
+            traceHTML += `<div class="trace-empty">Ninguna regla se activó con estos síntomas.</div>`;
+        } else {
+            traceHTML += `<div class="trace-steps">`;
+            trace.forEach(step => {
+                const isTarget = step.cons === target;
+                const antStr = step.ant.map(a => a.replace(/_/g,' ')).join(' ∧ ');
+                traceHTML += `<div class="trace-step">
+                    <span class="step-id">${step.id}</span>
+                    <div class="step-body">
+                        <span class="step-ant">${antStr}</span>
+                        <span class="step-arrow">→</span>
+                        <span class="step-cons${isTarget ? ' is-target' : ''}">${step.cons.replace(/_/g,' ')}</span>
+                    </div>
+                </div>`;
+            });
+            traceHTML += `</div>`;
+        }
+        traceHTML += `</div>`;
+        tc.innerHTML = traceHTML;
+
+        const wc = document.getElementById('wm-container');
+        const sortedWm = [...wm].sort();
+        let wmHTML = `<div class="wm-section"><div class="trace-header" style="margin-bottom:10px"><span class="trace-title-text">Memoria de trabajo final</span><div class="trace-line"></div></div><div class="wm-grid">`;
+        sortedWm.forEach(f => {
+            wmHTML += `<span class="wm-chip ${initSet.has(f) ? 'initial' : 'inferred'}">${f.replace(/_/g,' ')}</span>`;
+        });
+        wmHTML += `</div></div>`;
+        wc.innerHTML = wmHTML;
+    }
+
+    function resetToUpload() {
+        KB = [];
+        selectedSymptoms.clear();
+        document.getElementById('app').classList.remove('visible');
+        document.getElementById('app').style.display = 'none';
+        const us = document.getElementById('upload-screen');
+        us.style.display = '';
+        us.classList.remove('hidden');
+        document.getElementById('file-input').value = '';
+        document.getElementById('result-container').innerHTML = '';
+        document.getElementById('trace-container').innerHTML = '';
+        document.getElementById('wm-container').innerHTML = '';
+        document.getElementById('placeholder').style.display = '';
+    }
+</script>
+</body>
+</html>

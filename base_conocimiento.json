@@ -1,0 +1,325 @@
+{
+    "reglas": 
+    [
+        {
+            "id": "R01",
+            "antecedentes": ["Fiebre", "Tos"],
+            "consecuente": "Infeccion_Respiratoria"
+        },
+        {
+            "id": "R02",
+            "antecedentes": ["Infeccion_Respiratoria", "Dificultad_Respiratoria"],
+            "consecuente": "Neumonia"
+        },
+        {
+            "id": "R03",
+            "antecedentes": ["Neumonia", "Dolor_Pecho"],
+            "consecuente": "Neumonia_Grave"
+        },
+        {
+            "id": "R04",
+            "antecedentes": ["Fiebre", "Tos", "Esputo_Purulento"],
+            "consecuente": "Infeccion_Bacteriana_Respiratoria"
+        },
+        {
+            "id": "R05",
+            "antecedentes": ["Infeccion_Bacteriana_Respiratoria", "Dificultad_Respiratoria"],
+            "consecuente": "Neumonia_Bacteriana"
+        },
+        {
+            "id": "R06",
+            "antecedentes": ["Fiebre", "Dolor_Muscular", "Escalofrios"],
+            "consecuente": "Sindrome_Gripal"
+        },
+        {
+            "id": "R07",
+            "antecedentes": ["Sindrome_Gripal", "Congestion_Nasal"],
+            "consecuente": "Gripe"
+        },
+        {
+            "id": "R08",
+            "antecedentes": ["Sindrome_Gripal", "Dolor_Garganta"],
+            "consecuente": "Gripe_Con_Faringitis"
+        },
+        {
+            "id": "R09",
+            "antecedentes": ["Fiebre", "Perdida_Olfato", "Perdida_Gusto"],
+            "consecuente": "Infeccion_Viral_Respiratoria"
+        },
+        {
+            "id": "R10",
+            "antecedentes": ["Infeccion_Viral_Respiratoria", "Dificultad_Respiratoria"],
+            "consecuente": "COVID19_Probable"
+        },
+        {
+            "id": "R11",
+            "antecedentes": ["COVID19_Probable", "Fatiga"],
+            "consecuente": "COVID19"
+        },
+        {
+            "id": "R12",
+            "antecedentes": ["COVID19", "Dolor_Pecho"],
+            "consecuente": "COVID19_Severo"
+        },
+        {
+            "id": "R13",
+            "antecedentes": ["Fiebre", "Erupcion_Cutanea", "Dolor_Articular"],
+            "consecuente": "Infeccion_Dengue_Probable"
+        },
+        {
+            "id": "R14",
+            "antecedentes": ["Infeccion_Dengue_Probable", "Dolor_Cabeza"],
+            "consecuente": "Dengue"
+        },
+        {
+            "id": "R15",
+            "antecedentes": ["Dengue", "Vomito"],
+            "consecuente": "Dengue_Severo"
+        },
+        {
+            "id": "R16",
+            "antecedentes": ["Dengue_Severo", "Sangrado_Espontaneo"],
+            "consecuente": "Dengue_Hemorragico"
+        },
+        {
+            "id": "R17",
+            "antecedentes": ["Sudoracion_Nocturna", "Tos", "Perdida_Apetito"],
+            "consecuente": "Sintomas_Cronicos_Respiratorios"
+        },
+        {
+            "id": "R18",
+            "antecedentes": ["Sintomas_Cronicos_Respiratorios", "Fatiga"],
+            "consecuente": "Tuberculosis_Probable"
+        },
+        {
+            "id": "R19",
+            "antecedentes": ["Tuberculosis_Probable", "Tos_Con_Sangre"],
+            "consecuente": "Tuberculosis"
+        },
+        {
+            "id": "R20",
+            "antecedentes": ["Tuberculosis", "Perdida_Peso"],
+            "consecuente": "Tuberculosis_Avanzada"
+        },
+        {
+            "id": "R21",
+            "antecedentes": ["Ictericia", "Fatiga"],
+            "consecuente": "Compromiso_Hepatico"
+        },
+        {
+            "id": "R22",
+            "antecedentes": ["Compromiso_Hepatico", "Nauseas"],
+            "consecuente": "Hepatitis_Probable"
+        },
+        {
+            "id": "R23",
+            "antecedentes": ["Hepatitis_Probable", "Orina_Oscura"],
+            "consecuente": "Hepatitis_A"
+        },
+        {
+            "id": "R24",
+            "antecedentes": ["Hepatitis_Probable", "Dolor_Abdominal"],
+            "consecuente": "Hepatitis_B"
+        },
+        {
+            "id": "R25",
+            "antecedentes": ["Hepatitis_B", "Fatiga"],
+            "consecuente": "Hepatitis_B_Cronica"
+        },
+        {
+            "id": "R26",
+            "antecedentes": ["Rigidez_Nuca", "Fiebre"],
+            "consecuente": "Meningitis_Probable"
+        },
+        {
+            "id": "R27",
+            "antecedentes": ["Meningitis_Probable", "Dolor_Cabeza"],
+            "consecuente": "Meningitis_Viral"
+        },
+        {
+            "id": "R28",
+            "antecedentes": ["Meningitis_Viral", "Confusion"],
+            "consecuente": "Meningitis"
+        },
+        {
+            "id": "R29",
+            "antecedentes": ["Meningitis", "Convulsiones"],
+            "consecuente": "Meningitis_Bacteriana"
+        },
+        {
+            "id": "R30",
+            "antecedentes": ["Nauseas", "Vomito", "Diarrea"],
+            "consecuente": "Infeccion_Gastrointestinal"
+        },
+        {
+            "id": "R31",
+            "antecedentes": ["Infeccion_Gastrointestinal", "Fiebre"],
+            "consecuente": "Gastroenteritis_Infecciosa"
+        },
+        {
+            "id": "R32",
+            "antecedentes": ["Gastroenteritis_Infecciosa", "Dolor_Abdominal"],
+            "consecuente": "Gastroenteritis"
+        },
+        {
+            "id": "R33",
+            "antecedentes": ["Diarrea", "Vomito", "Fiebre"],
+            "consecuente": "Intoxicacion_Alimentaria"
+        },
+        {
+            "id": "R34",
+            "antecedentes": ["Dolor_Garganta", "Fiebre"],
+            "consecuente": "Infeccion_Garganta"
+        },
+        {
+            "id": "R35",
+            "antecedentes": ["Infeccion_Garganta", "Inflamacion_Amigdalas"],
+            "consecuente": "Faringitis_Estreptococo"
+        },
+        {
+            "id": "R36",
+            "antecedentes": ["Infeccion_Respiratoria", "Congestion_Nasal"],
+            "consecuente": "Sinusitis_Probable"
+        },
+        {
+            "id": "R37",
+            "antecedentes": ["Sinusitis_Probable", "Dolor_Cabeza"],
+            "consecuente": "Sinusitis"
+        },
+        {
+            "id": "R38",
+            "antecedentes": ["Tos", "Congestion_Nasal", "Dolor_Garganta"],
+            "consecuente": "Resfriado_Comun"
+        },
+        {
+            "id": "R39",
+            "antecedentes": ["Resfriado_Comun", "Fiebre"],
+            "consecuente": "Infeccion_Viral_ORL"
+        },
+        {
+            "id": "R40",
+            "antecedentes": ["Dificultad_Respiratoria", "Tos"],
+            "consecuente": "Obstruccion_Via_Aerea"
+        },
+        {
+            "id": "R41",
+            "antecedentes": ["Obstruccion_Via_Aerea", "Sibilancias"],
+            "consecuente": "Asma_Aguda"
+        },
+        {
+            "id": "R42",
+            "antecedentes": ["Dolor_Abdominal", "Fiebre"],
+            "consecuente": "Inflamacion_Abdominal"
+        },
+        {
+            "id": "R43",
+            "antecedentes": ["Inflamacion_Abdominal", "Nauseas"],
+            "consecuente": "Apendicitis_Probable"
+        },
+        {
+            "id": "R44",
+            "antecedentes": ["Apendicitis_Probable", "Vomito"],
+            "consecuente": "Apendicitis"
+        },
+        {
+            "id": "R45",
+            "antecedentes": ["Dolor_Articular", "Inflamacion_Articular"],
+            "consecuente": "Artritis_Probable"
+        },
+        {
+            "id": "R46",
+            "antecedentes": ["Artritis_Probable", "Fiebre"],
+            "consecuente": "Artritis_Reumatoide_Aguda"
+        },
+        {
+            "id": "R47",
+            "antecedentes": ["Palpitaciones", "Dolor_Pecho"],
+            "consecuente": "Riesgo_Cardiovascular"
+        },
+        {
+            "id": "R48",
+            "antecedentes": ["Riesgo_Cardiovascular", "Mareos"],
+            "consecuente": "Arritmia_Probable"
+        },
+        {
+            "id": "R49",
+            "antecedentes": ["Arritmia_Probable", "Dificultad_Respiratoria"],
+            "consecuente": "Insuficiencia_Cardiaca"
+        },
+        {
+            "id": "R50",
+            "antecedentes": ["Fiebre", "Escalofrios", "Sudoracion_Nocturna"],
+            "consecuente": "Infeccion_Sistemica"
+        },
+        {
+            "id": "R51",
+            "antecedentes": ["Infeccion_Sistemica", "Confusion"],
+            "consecuente": "Sepsis_Probable"
+        },
+        {
+            "id": "R52",
+            "antecedentes": ["Sepsis_Probable", "Palpitaciones"],
+            "consecuente": "Sepsis"
+        },
+        {
+            "id": "R53",
+            "antecedentes": ["Ojo_Rojo", "Secrecion_Ocular"],
+            "consecuente": "Conjuntivitis"
+        },
+        {
+            "id": "R54",
+            "antecedentes": ["Fiebre", "Erupcion_Cutanea"],
+            "consecuente": "Infeccion_Viral_Cutanea"
+        },
+        {
+            "id": "R55",
+            "antecedentes": ["Infeccion_Viral_Cutanea", "Prurito"],
+            "consecuente": "Varicela_Probable"
+        },
+        {
+            "id": "R56",
+            "antecedentes": ["Varicela_Probable", "Vesiculas"],
+            "consecuente": "Varicela"
+        },
+        {
+            "id": "R57",
+            "antecedentes": ["Fatiga", "Perdida_Apetito", "Perdida_Peso"],
+            "consecuente": "Malnutricion_Probable"
+        },
+        {
+            "id": "R58",
+            "antecedentes": ["Malnutricion_Probable", "Palidez"],
+            "consecuente": "Anemia"
+        },
+        {
+            "id": "R59",
+            "antecedentes": ["Dolor_Pecho", "Dificultad_Respiratoria", "Fiebre"],
+            "consecuente": "Pleuritis_Probable"
+        },
+        {
+            "id": "R60",
+            "antecedentes": ["Pleuritis_Probable", "Tos"],
+            "consecuente": "Pleuritis"
+        },
+        {
+            "id": "R61",
+            "antecedentes": ["Fiebre", "Dolor_Articular", "Erupcion_Cutanea"],
+            "consecuente": "Arbovirosis_Probable"
+        },
+        {
+            "id": "R62",
+            "antecedentes": ["Arbovirosis_Probable", "Congestion_Nasal"],
+            "consecuente": "Chikungunya"
+        },
+        {
+            "id": "R63",
+            "antecedentes": ["Mareos", "Dolor_Cabeza"],
+            "consecuente": "Sindrome_Vertigo"
+        },
+        {
+            "id": "R64",
+            "antecedentes": ["Sindrome_Vertigo", "Nauseas"],
+            "consecuente": "Migrania"
+        }
+    ]
+}
