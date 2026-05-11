@@ -1,12 +1,12 @@
 <div align="center">
 
-# 🧠 Proyecto 3: Motor de Inferencia Simbólica
+# Proyecto 3: Motor de Inferencia Simbólica
 
 ## **Introducción a la Inteligencia Artificial — Pontificia Universidad Javeriana**
 
 ![Logo de la Pontificia Universidad Javeriana](https://upload.wikimedia.org/wikipedia/commons/6/6c/Javeriana.svg)
 
-**Autores:** Juan Daniel Ortiz, Nicolas Castañeda, Juan David Rincon, Nicolás Torres  
+**Autores:** Juan Daniel Ortiz - Nicolas Castañeda - Juan David Rincon - Nicolás Torres  
 **Entregado a:** Ing. Julio Omar Palacio Niño  
 **Fecha de entrega:** 10 de Mayo 2026
 
@@ -21,7 +21,7 @@
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
 1. [Descripción del proyecto](#-descripción-del-proyecto)
 2. [Estructura del repositorio](#-estructura-del-repositorio)
@@ -34,7 +34,7 @@
 
 ---
 
-## 🔍 Descripción del proyecto
+## Descripción del proyecto
 
 Este proyecto implementa un **Motor de Inferencia de Propósito General** basado en el algoritmo de **Encadenamiento hacia Adelante (Forward Chaining)**, aplicado a un dominio de diagnóstico médico.
 
@@ -50,7 +50,7 @@ El motor determina si `α` se deriva lógicamente de `△` aplicando las reglas 
 
 ---
 
-## 📁 Estructura del repositorio
+## Estructura del repositorio
 
 ```
 Proyecto3-motorInferencia/
@@ -63,7 +63,7 @@ Proyecto3-motorInferencia/
 
 ---
 
-## 📖 Fundamento Teórico
+## Fundamento Teórico
 
 ### Cláusulas de Horn
 
@@ -104,7 +104,7 @@ FIN
 
 ---
 
-## 🗃️ Base de Conocimiento
+## Base de Conocimiento
 
 La KB se almacena externamente en `base_conocimiento.json` para garantizar la **modularidad** del sistema: el motor puede razonar sobre cualquier dominio sin modificar el código.
 
@@ -131,7 +131,7 @@ La KB se almacena externamente en `base_conocimiento.json` para garantizar la **
 
 | Métrica | Valor |
 |---|---|
-| Total de reglas | **64** (mínimo requerido: 50) |
+| Total de reglas | **64** |
 | Síntomas primarios | 30 |
 | Hechos intermedios | 17 |
 | Diagnósticos finales | 17 |
@@ -153,7 +153,7 @@ La KB se almacena externamente en `base_conocimiento.json` para garantizar la **
 
 ---
 
-## ⚙️ Implementación
+## Implementación
 
 ### Clases principales
 
@@ -163,7 +163,7 @@ La KB se almacena externamente en `base_conocimiento.json` para garantizar la **
 class Regla:
     def __init__(self, id_regla, antecedentes, consecuente):
         self.id_regla     = id_regla
-        self.antecedentes = set(antecedentes)  # O(1) lookup
+        self.antecedentes = set(antecedentes)
         self.consecuente  = consecuente
 ```
 
@@ -174,7 +174,7 @@ class MotorInferencia:
     def __init__(self, ruta_kb):
         self.reglas          = self.cargar_kb(ruta_kb)
         self.memoria_trabajo = set()
-        self.traza           = []   # Traza de Explicación
+        self.traza           = []
 ```
 
 ### Función `ejecutar_inferencia()`
@@ -217,7 +217,7 @@ def ejecutar_inferencia(self, hechos_iniciales, objetivo):
 
 ---
 
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 
 **Requisitos:** Python 3.8 o superior. No se requieren dependencias externas.
 
@@ -247,9 +247,9 @@ motor.imprimir_traza()
 
 ---
 
-## 🧪 Casos de prueba
+## Casos de prueba
 
-### Caso 1 — Neumonía (cadena de 2 pasos) ✅
+### Caso 1 — Neumonía (cadena de 2 pasos)
 
 ```
 Síntomas : ["Fiebre", "Tos", "Dificultad_Respiratoria"]
@@ -262,7 +262,7 @@ Traza:
   [1] R02: Dificultad_Respiratoria AND Infeccion_Respiratoria => Neumonia
 ```
 
-### Caso 2 — COVID-19 (cadena de 3 pasos) ✅
+### Caso 2 — COVID-19 (cadena de 3 pasos)
 
 ```
 Síntomas : ["Fiebre", "Perdida_Olfato", "Perdida_Gusto", "Dificultad_Respiratoria", "Fatiga"]
@@ -276,7 +276,7 @@ Traza:
   [1] R11: COVID19_Probable AND Fatiga => COVID19
 ```
 
-### Caso 3 — Punto fijo sin objetivo ❌
+### Caso 3 — Punto fijo sin objetivo
 
 ```
 Síntomas : ["Congestion_Nasal", "Dolor_Garganta"]
@@ -289,7 +289,7 @@ Traza: (No se activó ninguna regla)
 
 ---
 
-## 🖥️ Interfaz de Validación
+## Interfaz de Validación
 
 El archivo `motor_inferencia.html` es una interfaz web interactiva que replica el motor completo en el navegador, pensada para demostración en clase.
 
@@ -301,13 +301,11 @@ El archivo `motor_inferencia.html` es una interfaz web interactiva que replica e
 4. Elegir un diagnóstico objetivo y presionar **Ejecutar KB ⊨ α**
 
 La interfaz muestra el veredicto (`KB ⊨ α` o `KB ⊭ α`), la traza de razonamiento paso a paso con el ID de cada regla activada, y la memoria de trabajo final diferenciando síntomas iniciales de hechos inferidos.
-
-> **Nota:** si se sirve con un servidor local (`python -m http.server`), el JSON se carga automáticamente sin interacción manual.
-
+ 
 ---
 
 <div align="center">
 
-**Pontificia Universidad Javeriana · Facultad de Ingeniería · 2026**
+**Pontificia Universidad Javeriana - Facultad de Ingeniería**
 
 </div>
